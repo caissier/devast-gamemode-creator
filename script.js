@@ -29,6 +29,102 @@ function switchTab(t) {
   else if (t === 'links') showLinksTab();
 }
 
+async function showDocumentationTab() {
+  showTabs();
+  const body = document.getElementById('tabContainer');
+  body.innerHTML = `
+    <div class="documentation-content">
+      <h2 class="doc-title">Documentation</h2>
+      <div class="docu-nav">
+        <button onclick="scrollDocSection('eventtypes')">Event Types</button>
+        <button onclick="scrollDocSection('commands')">Commands</button>
+        <button onclick="scrollDocSection('discordcmds')">Discord Cmds</button>
+      </div>
+      <div id="documentationSections"></div>
+    </div>
+  `;
+  const [events, commands, discordCmds] = await Promise.all([
+    fetchData('event_types.json'),
+    fetchData('commands.json'),
+    fetchData('discord_cmds.json')
+  ]);
+  let sectionHTML = `
+    <h3 class="doc-section-title" id="docu-eventtypes">Event Type List</h3>
+    <ul>
+      ${events.map(ev=>`
+        <li>
+          <strong>${ev.name}</strong>
+          ${ev.params && ev.params.length ? `<br>Params: <code>${ev.params.join(', ')}</code>` : ""}
+          ${ev.description ? `<br>${ev.description}` : ""}
+          ${ev.example_links && ev.example_links.length ? `
+            <br>Example: ${ev.example_links.map(l => l.startsWith('https') ? `<a href="${l}" target="_blank">${l}</a>` : l).join('<br>')}
+          ` : ""}
+        </li>
+      `).join('')}
+    </ul>
+    <hr>
+    <h3 class="doc-section-title" id="docu-commands">Event Commands List</h3>
+    <ul>
+      ${commands.map(cmd => `
+        <li>
+          <strong>${cmd.cmd}${(cmd.emoji) ? " " + cmd.emoji : ""}</strong>
+          ${cmd.params && cmd.params.length ? `<br>Params: <code>${cmd.params.join(', ')}</code>` : ""}
+          ${cmd.description ? `<br>${cmd.description}` : ""}
+          ${cmd.example_links && cmd.example_links.length ? `
+            <br>Example: ${cmd.example_links.map(l => l.startsWith('https') ? `<a href="${l}" target="_blank">${l}</a>` : l).join('<br>')}
+          ` : ""}
+        </li>
+      `).join('')}
+    </ul>
+    <div style="color:#91e3ff;font-size:1em;margin:12px 0 12px 0;">
+      <span>📚 For item list and building life see <a href="https://devast.io/commands/#item" target="_blank">devast.io/commands/#item</a></span>
+    </div>
+    <hr>
+    <h3 class="doc-section-title" id="docu-discordcmds">Discord Commands List</h3>
+    <div id="discordCmdsContainer"></div>  
+  `;
+  document.getElementById('documentationSections').innerHTML = sectionHTML;
+  document.getElementById('discordCmdsContainer').innerHTML = `
+    <ul>
+      ${discordCmds.map(d => `
+        <li>
+          <code>${d.cmd}</code>
+          ${d.description ? `<br><small>Description: ${d.description}</small>` : ''}
+          ${d.example_links && d.example_links.length ? `
+          <br><small>Examples: ${
+            d.example_links
+            .map(link =>
+              link.startsWith('https')
+              ? `<a href="${link}" target="_blank">${link}</a>`
+              : `<span class="not-a-link">${link}</span>`
+            )
+            .join('<br>')
+          }</small>
+          ` : ''}
+        </li>
+      `).join('')}
+    </ul>
+  `;
+}
+
+function showLinksTab() {
+  showTabs();
+  const body = document.getElementById('tabContainer');
+  body.innerHTML = `
+    <div class="links-content">
+      <h2>Links</h2>
+      <ul>
+        <li><a href="https://devast.io/?name=private2" target="_blank">The Devast.io server (#2)</a></li>
+        <li><a href="https://discord.gg/nMjJthgJTa" target="_blank">Caissier Discord, where you can enter in-game commands</a></li>
+        <li><a href="https://discord.com/invite/njg9j9sYBC" target="_blank">Official Devast.io Discord</a></li>
+        <li><a href="https://caissier.github.io/devastMapEditorPlusPlus/" target="_blank">An unofficial Map Editor for devast</a></li>
+      </ul>
+    </div>
+  `;
+}
+
+
+
 // -------- EventType Tools UI ---------
 async function showEventTypeTools() {
   showTabs();
@@ -87,7 +183,17 @@ async function showEventTypeTools() {
   document.getElementById('jsonFile').addEventListener('change', fileImportJSON);
   populateCmdTypeSelector();
   document.getElementById('cmdTypeSel').addEventListener('change', onCmdTypeSelect);
-  document.getElementById('addCmdBtn').addEventListener('click', addCmd);
+  document.getElementById('addCmdBtn').addEventListener('click', () => {
+  const sel = document.getElementById('cmdTypeSel').value;
+  if (sel === 'trade') {
+    handleTradeAddCommand();
+  } else if (sel === 'add-data') {
+    handleAddDataAddCommand();
+  } else {
+    addCmd();
+  }
+});
+
   tempCmds = [];
   renderCmdList();
   refreshEventList();
@@ -107,10 +213,13 @@ async function showEventTypeTools() {
     const type = document.getElementById('eventTypeSel').value;
     const curr = eventTypes.find(ev => ev.name === type);
     const params = {};
-    if (type === "HasData") {
-      params.ids = readStringListInputs("ids");
-      params.exclude = readStringListInputs("exclude");
-    } else if (curr) {
+if (type === "HasData") {
+  params.ids = readStringListInputs("ids");
+  const excludeArr = readStringListInputs("exclude");
+  if (excludeArr.length > 0) {
+    params.exclude = excludeArr;
+  }
+} else if (curr) {
       curr.params.forEach(p => {
         if (p === 'ids' || p === 'exclude') return; // handled above
         const el = document.getElementById('param_' + p);
@@ -256,6 +365,7 @@ function onCmdTypeSelect() {
       tradeToArr.push({});
       renderTradeArr(tradeToArr, 'tradeToFields', 'to');
     };
+    /*
     document.getElementById('addCmdBtn').onclick = function() {
       let fromArr = Array.from(document.querySelectorAll('#tradeFromFields .form-row'))
         .map((row, i) => ({
@@ -282,6 +392,7 @@ function onCmdTypeSelect() {
       });
       renderCmdList();
     };
+    */
     return;
   }
   // Add command logic for others like add-data
@@ -335,6 +446,7 @@ function onCmdTypeSelect() {
         btn.classList.toggle('active', !current);
       };
     });
+    /*
     document.getElementById('addCmdBtn').onclick = () => {
       const ids = [];
       document.querySelectorAll('#addDataIdsContainer input.input-string').forEach(input => {
@@ -352,6 +464,7 @@ function onCmdTypeSelect() {
       tempCmds.push({ cmd: sel, params });
       renderCmdList();
     };
+    */
     return;
   }
   // Other inputs (default)
@@ -365,10 +478,64 @@ function onCmdTypeSelect() {
       `;
     });
   }
-  const btn = document.getElementById('addCmdBtn');
-  btn.removeEventListener('click', addCmd); // Remove any prior
-  btn.addEventListener('click', addCmd);
+  //const btn = document.getElementById('addCmdBtn');
+  //btn.removeEventListener('click', addCmd); // Remove any prior
+  //btn.addEventListener('click', addCmd);
 }
+
+function handleTradeAddCommand() {
+  let fromArr = Array.from(document.querySelectorAll('#tradeFromFields .form-row'))
+    .map((row, i) => ({
+      item: row.querySelector(`#fromItem${i}`)?.value,
+      quantity: Number(row.querySelector(`#fromQt${i}`)?.value)
+    }))
+    .filter(x => x.item);
+
+  let toArr = Array.from(document.querySelectorAll('#tradeToFields .form-row'))
+    .map((row, i) => ({
+      item: row.querySelector(`#toItem${i}`)?.value,
+      quantity: Number(row.querySelector(`#toQt${i}`)?.value)
+    }))
+    .filter(x => x.item);
+
+  const successData = document.getElementById('tradeSuccess').value;
+  const failData = document.getElementById('tradeFail').value;
+
+  tempCmds.push({
+    cmd: 'trade',
+    params: {
+      from: fromArr,
+      to: toArr,
+      ...(successData ? { success: successData } : {}),
+      ...(failData ? { fail: failData } : {})
+    }
+  });
+  renderCmdList();
+}
+
+function handleAddDataAddCommand() {
+  const ids = [];
+  document.querySelectorAll('#addDataIdsContainer input.input-string').forEach(input => {
+    if (input.value.trim()) ids.push(input.value.trim());
+  });
+  const params = {};
+  params.ids = ids;
+  params.random = document.getElementById('input_random').value === 'true';
+  params.global = document.getElementById('input_global').value === 'true';
+
+  const curr = commandTypes.find(c => c.cmd === 'add-data');
+  if (!curr) return;
+
+  curr.params.forEach(p => {
+    if (['ids', 'random', 'global'].includes(p)) return;
+    const val = document.getElementById('cmdparam_' + p);
+    if (val && val.value) params[p] = val.value;
+  });
+
+  tempCmds.push({ cmd: 'add-data', params });
+  renderCmdList();
+}
+
 
 function populateEventTypeSelector() {
   const sel = document.getElementById('eventTypeSel');
@@ -442,10 +609,13 @@ function addEvent() {
   const type = document.getElementById('eventTypeSel').value;
   const curr = eventTypes.find(ev => ev.name === type);
   const params = {};
-  if (type === "HasData") {
-    params.ids = readStringListInputs("ids");
-    params.exclude = readStringListInputs("exclude");
-  } else if (curr) {
+if (type === "HasData") {
+  params.ids = readStringListInputs("ids");
+  const excludeArr = readStringListInputs("exclude");
+  if (excludeArr.length > 0) {
+    params.exclude = excludeArr;
+  }
+} else if (curr) {
     curr.params.forEach(p => {
       if (p === 'ids' || p === 'exclude') return; // handled above
       const el = document.getElementById('param_' + p);
