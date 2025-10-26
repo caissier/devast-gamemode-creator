@@ -184,6 +184,7 @@ async function showEventTypeTools() {
       return;
     }
 
+
     curr.params.forEach(p => {
       fields.innerHTML += `
         <div class="form-row">
@@ -280,6 +281,35 @@ function onCmdTypeSelect() {
     };
     return;
   }
+  if (sel === 'turn-event') {
+    // Render toggle button for mode
+    fields.innerHTML = `
+        <div class="form-row">
+        <label for="btn_mode">mode</label>
+        <button type="button" class="toggle-btn-btn" id="btn_mode">mode: false</button>
+        <input type="hidden" id="input_mode" value="false" />
+        </div>
+    `;
+
+    // Setup toggle button
+    const btn = document.getElementById('btn_mode');
+    const hiddenInput = document.getElementById('input_mode');
+    btn.onclick = () => {
+        const isTrue = hiddenInput.value === 'true';
+        hiddenInput.value = (!isTrue).toString();
+        btn.textContent = `mode: ${!isTrue}`;
+        btn.classList.toggle('active', !isTrue);
+    };
+
+    // Override addCmdBtn to grab the toggle value
+    document.getElementById('addCmdBtn').onclick = () => {
+        const modeVal = document.getElementById('input_mode').value === 'true';
+        tempCmds.push({ cmd: sel, params: { mode: modeVal } });
+        renderCmdList();
+    };
+    return;
+    }
+
 
   // Existing trade command or others handled here...
 
@@ -306,12 +336,16 @@ function onCmdTypeSelect() {
 function populateEventTypeSelector() {
   const sel = document.getElementById('eventTypeSel');
   sel.innerHTML = '';
-  eventTypes.forEach(ev => {
-    const opt = document.createElement('option');
-    opt.value = ev.name;
-    opt.textContent = ev.name;
-    sel.appendChild(opt);
-  });
+  // Sort alphabetically by .name, case-insensitive
+  eventTypes
+    .slice() // copy array so original remains in data order
+    .sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }))
+    .forEach(ev => {
+      const opt = document.createElement('option');
+      opt.value = ev.name;
+      opt.textContent = ev.name;
+      sel.appendChild(opt);
+    });
 }
 
 function onEventTypeSelect() {
@@ -335,13 +369,17 @@ function onEventTypeSelect() {
 function populateCmdTypeSelector() {
   const sel = document.getElementById('cmdTypeSel');
   sel.innerHTML = '';
-  commandTypes.forEach(c => {
-    const emojiStr = c.emoji ? ` ${c.emoji}` : '';
-    const opt = document.createElement('option');
-    opt.value = c.cmd;
-    opt.textContent = `${c.cmd}${emojiStr}`;
-    sel.appendChild(opt);
-  });
+  // Sort alphabetically by .cmd, case-insensitive
+  commandTypes
+    .slice() // copy array so original remains in data order
+    .sort((a, b) => a.cmd.localeCompare(b.cmd, undefined, { sensitivity: 'base' }))
+    .forEach(c => {
+      const emojiStr = c.emoji ? ` ${c.emoji}` : '';
+      const opt = document.createElement('option');
+      opt.value = c.cmd;
+      opt.textContent = `${c.cmd}${emojiStr}`;
+      sel.appendChild(opt);
+    });
 }
 
 function onCmdTypeSelect() {
