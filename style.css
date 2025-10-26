@@ -1,0 +1,280 @@
+body {
+  font-family: Arial, sans-serif;
+  background: #202229;
+  color: #f4f4f7;
+  margin: 0;
+  min-height: 100vh;
+}
+
+#title-bar {
+  text-align: center;
+  margin-top: 20px;
+  margin-bottom: 15px;
+}
+h1 {
+  font-size: 2.7em;
+  margin-bottom: 0.13em;
+  font-weight: 800;
+  letter-spacing: 1px;
+}
+.subtitle {
+  font-size: 1.15em;
+  color: #87b0fb;
+  font-weight: 500;
+  margin-bottom: 5px;
+}
+
+nav {
+  display: flex;
+  justify-content: left;
+  align-items: center;
+  gap: 8px;
+  background: #23272d;
+  padding: 10px 0 0 50px;
+  margin-bottom: 18px;
+}
+nav .tab {
+  background: #2c3035;
+  color: #fff;
+  border: none;
+  margin: 0 3px 0 0;
+  padding: 12px 32px 12px 32px;
+  border-radius: 6px 6px 0 0;
+  cursor: pointer;
+  font-size: 1.1em;
+  font-weight: 600;
+  transition: background 0.16s;
+}
+nav .tab.active {
+  background: #6fc4ff;
+  color: #222;
+}
+
+#tabContainer {
+  max-width: 875px;
+  margin: 0 auto;
+  background: #23272d;
+  border-radius: 11px;
+  padding: 35px 35px 50px 35px;
+  min-height: 420px;
+  box-shadow: 0px 3px 17px 4px rgba(60,80,160,0.06);
+}
+
+/* Form layout */
+.form-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 13px;
+}
+.form-row label {
+  min-width: 160px;
+  margin-bottom: 0;
+  font-size: 1.13em;
+  font-weight: 500;
+  color: #20ba34;
+}
+.form-row input,
+.form-row select,
+.form-row textarea {
+  flex: 1;
+  margin-left: 12px;
+  width: unset;
+  font-size: 1.17em;
+}
+.form-row input[type="checkbox"] {
+  width: auto;
+  margin-left: 0;
+  margin-right: 12px;
+  vertical-align: middle;
+}
+.form-row label[for="eventTypeSel"],
+.form-row label[for="cmdTypeSel"] {
+  font-size: 1.35em;
+  color: #b60202;
+  font-weight: 700;
+}
+
+/* Dropdowns */
+/* Dropdowns: make select text red */
+#eventTypeSel,
+#cmdTypeSel {
+  font-size: 1.13em;
+  color: #b60202;         /* red text for the dropdown selection */
+  font-weight: 600;
+  background: #181a1e;
+  border: 1px solid #3c2323;
+  border-radius: 5px;
+  padding: 4px 11px;
+}
+#eventTypeSel:focus,
+#cmdTypeSel:focus {
+  outline: 2px solid #f08787;
+}
+
+
+.event-form button,
+.cmd-form button,
+.editor-controls button {
+  padding: 8px 25px;
+  font-size: 1.1em;
+  font-weight: 600;
+  color: #23303d;
+  background-color: #6fc4ff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  margin-top: 12px;
+}
+.event-form button:hover,
+.cmd-form button:hover,
+.editor-controls button:hover {
+  background-color: #82bfff;
+}
+
+/* EventType Tools Headers */
+.doc-title {
+  font-size: 2em;
+  letter-spacing: 1px;
+  color: #68c5ff;
+  margin-bottom: 10px;
+}
+.event-form h2,
+.event-list h2,
+.links-content h2,
+.documentation-content h2 {
+  font-size: 2em;
+  letter-spacing: 1px;
+  color: #68c5ff;
+  margin-bottom: 10px;
+}
+
+/* Documentation tab */
+.documentation-content ul {
+  margin-bottom: 18px;
+  padding-left: 18px;
+}
+.documentation-content li {
+  margin-bottom: 10px;
+}
+.documentation-content code {
+  font-size: 1em;
+  background: #21262a;
+  color: #ed2020;
+  border-radius: 4px;
+  padding: 2px 7px;
+}
+.documentation-content a {
+  color: #91e3ff;
+  text-decoration: underline;
+}
+.documentation-content hr {
+  border: 0;
+  border-top: 1px solid #6fc4ff;
+  margin: 31px 0 28px 0;
+}
+.doc-section-title {
+  font-size: 1.2em;
+  color: #a2daf9;
+  margin-top: 28px;
+  margin-bottom: 11px;
+  font-weight: 700;
+}
+.docu-nav {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+.docu-nav button {
+  background: #393f47;
+  color: #e5edef;
+  border: none;
+  font-size: 1em;
+  font-weight: bold;
+  padding: 7px 25px;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-bottom: 3px;
+  margin-right: 10px;
+  transition: background 0.13s;
+}
+.docu-nav button:hover {
+  background: #68c5ff;
+  color: #222;
+}
+
+/* Event list */
+.event-item {
+  background: #282c34;
+  padding: 13px;
+  border-radius: 7px;
+  margin-bottom: 12px;
+  position: relative;
+  border-left: 4px solid #68c5ff;
+}
+.event-item .remove-btn {
+  position: absolute;
+  right: 12px;
+  top: 12px;
+  background: #ff6060;
+  color: #fff;
+  font-size: 0.9em;
+  border-radius: 3px;
+  padding: 3px 10px;
+  cursor: pointer;
+}
+
+.links-content ul {
+  margin-bottom: 14px;
+}
+.links-content li {
+  margin-bottom: 11px;
+}
+.links-content a {
+  color: #61c3ff;
+  font-size: 1.06em;
+  text-decoration: underline;
+}
+
+#tabContainer h2, .doc-title, .links-content h2 {
+  text-align: center;
+}
+
+.toggle-btn {
+  background: #6fc4ff;
+  color: #b60202;
+  font-weight: bold;
+  font-size: 1.13em;
+  padding: 8px 26px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  transition: background 0.18s;
+  box-shadow: 0px 1px 5px rgba(40, 60, 120, 0.07);
+}
+
+.toggle-btn.active {
+  background: #ed6060;
+  color: #fff;
+}
+
+.toggle-btn:focus {
+  outline: 2px solid #ed6060;
+}
+
+.trade-subbtn {
+  background: #32363b;
+  color: #f08787;
+  padding: 3px 14px;
+  font-size: 1em;
+  font-weight: 600;
+  border-radius: 5px;
+  border: none;
+  margin-top: 3px;
+  margin-bottom: 3px;
+  cursor: pointer;
+}
+.trade-subbtn:hover {
+  background: #ed6060;
+  color: #fff;
+}

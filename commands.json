@@ -1,0 +1,182 @@
+[
+  {
+    "cmd": "tp",
+    "params": ["ax", "ay", "bx", "by"],
+    "description": "Teleport a player randomly in the zone from [ax, ay] to [bx, by].",
+    "example_links": []
+  },
+  {
+    "cmd": "tpall",
+    "params": ["ax", "ay", "bx", "by"],
+    "description": "Teleport ALL players randomly in the zone from [ax, ay] to [bx, by].",
+    "example_links": []
+  },
+  {
+    "cmd": "item-to",
+    "params": ["item", "qt"],
+    "description": "Give item to player. qt (quantity) is optional (1–255). 📚",
+    "example_links": []
+  },
+  {
+    "cmd": "item-all",
+    "params": ["item", "qt"],
+    "description": "Give item to ALL players. qt (quantity) is optional (1–255). 📚",
+    "example_links": []
+  },
+  {
+    "cmd": "remove-to",
+    "params": ["item", "qt"],
+    "description": "Remove item from player inventory. Quantity is optional (0–5000); removes all if not set. 📚",
+    "example_links": []
+  },
+  {
+    "cmd": "building-life",
+    "params": ["build", "life"],
+    "description": "Change building life. 📚",
+    "example_links": []
+  },
+  {
+    "cmd": "turn-event",
+    "params": ["id", "mode"],
+    "description": "Enable or disable event(s) with this id (mode: on/off).",
+    "example_links": []
+  },
+  {
+    "cmd": "start-hunger-game",
+    "params": [],
+    "description": "Start a hunger game. All current players will be survivor. New players join as 'zombie'. When all survivors are dead, stop hunger game and trigger 'HungerGameStop' event.",
+    "example_links": []
+  },
+  {
+    "cmd": "message-to",
+    "params": ["msg"],
+    "description": "Send message to the player triggering the event.",
+    "example_links": []
+  },
+  {
+    "cmd": "message-all",
+    "params": ["msg"],
+    "description": "Send message to ALL players.",
+    "example_links": []
+  },
+  {
+    "cmd": "remove-all-item-to",
+    "params": [],
+    "description": "Remove ALL items from a player's inventory.",
+    "example_links": []
+  },
+  {
+    "cmd": "clean-map",
+    "params": [],
+    "description": "Clean the map (natural resource/building and those placed); does NOT affect !clean-record.",
+    "example_links": []
+  },
+  {
+    "cmd": "add-starter-kit",
+    "params": ["item", "quantity"],
+    "description": "See https://devast.io/commands/#starter-kit for more details. 📚",
+    "example_links": ["https://devast.io/commands/#starter-kit"]
+  },
+  {
+    "cmd": "clean-starter-kit",
+    "params": [],
+    "description": "See https://devast.io/commands/#starter-kit for more details. 📚",
+    "example_links": ["https://devast.io/commands/#starter-kit"]
+  },
+  {
+    "cmd": "tp-dir",
+    "params": ["x", "y"],
+    "description": "Teleport the player in XY direction.",
+    "example_links": []
+  },
+  {
+    "cmd": "tp-dir-face",
+    "params": ["dist"],
+    "description": "Teleport the player in the direction they're looking.",
+    "example_links": []
+  },
+  {
+    "cmd": "add-data",
+    "params": ["ids", "global", "timer", "random"],
+    "description": "Add data to global or player data list. 'ids' is an array of ids, 'random' if true adds only one random id, 'timer' (seconds, allows 0), 'global' applies to all players. Replaces timer if id already exists.",
+    "example_links": []
+  },
+  {
+    "cmd": "remove-data",
+    "params": ["id", "global"],
+    "description": "Remove data by id or clear all. 'global' determines if global data is affected.",
+    "example_links": []
+  },
+  {
+    "cmd": "trade",
+    "params": ["from", "to"],
+    "description": "Requires arrays of {item, quantity}. Checks if the player has all 'from' requirements, then exchanges for 'to'. Adds success/fail data to player.",
+    "example_links": []
+  },
+  {
+    "cmd": "stop-hunger-game",
+    "params": [],
+    "description": "Stop hunger game via event before last survivor dies.",
+    "example_links": []
+  },
+  {
+    "cmd": "turn-zombie",
+    "params": ["mode"],
+    "description": "'mode' true/false: turn specific player into zombie/survivor.",
+    "example_links": []
+  },
+  {
+    "cmd": "set-money",
+    "params": ["money"],
+    "description": "Set a player's money to a certain value.",
+    "example_links": []
+  },
+  {
+    "cmd": "remove-money",
+    "params": ["money"],
+    "description": "Remove money, set to zero if not enough. Use 'trade' for additions.",
+    "example_links": []
+  },
+  {
+    "cmd": "set-pos",
+    "params": [],
+    "description": "Save current player position.",
+    "example_links": []
+  },
+  {
+    "cmd": "clean-pos",
+    "params": [],
+    "description": "Delete saved position.",
+    "example_links": []
+  },
+  {
+    "cmd": "tp-to-pos",
+    "params": [],
+    "description": "Teleport player to saved position.",
+    "example_links": []
+  },
+  {
+    "cmd": "item-list=",
+    "params": ["id", "items"],
+    "description": "Add multiple lists of item. 'id': list name, 'items': array.",
+    "example_links": []
+  },
+  {
+    "cmd": "clean-item-list",
+    "params": [],
+    "description": "Delete all item-lists.",
+    "example_links": []
+  },
+  {
+    "cmd": "must-have-item-list",
+    "params": ["id"],
+    "description": "Auto-refill inventory from a list ('id'). Not permanent: must use every tick.",
+    "example_links": []
+  },
+  {
+    "cmd": "forbiden-item-list",
+    "params": ["id"],
+    "description": "Forbid items in inventory from a list ('id'). Not permanent: must use every tick.",
+    "example_links": []
+  }
+]

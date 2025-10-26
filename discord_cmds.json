@@ -1,0 +1,22 @@
+[
+  { "cmd": "clean-starter-kit" },
+  { "cmd": "karma-xp-" },
+  { "cmd": "score-over-time-" },
+  { "cmd": "harvest-speed=" },
+  { "cmd": "xp=" },
+  { "cmd": "teleport-all=" },
+  { "cmd": "building-life=" },
+  { "cmd": "spawn-loot" },
+  { "cmd": "loot-" },
+  { "cmd": "vegetation-regeneration" },
+  { "cmd": "house-regeneration-" },
+  { "cmd": "add-starter-kit=" },
+  { "cmd": "item-all=" },
+  { "cmd": "player-list" },
+  { "cmd": "ghoul-regeneration-" },
+  { "cmd": "light-damage=" },
+  { "cmd": "AI-" },
+  { "cmd": "gauge-" },
+  { "cmd": "tp-admin=X:Y" },
+  { "cmd": "!public=" }
+]

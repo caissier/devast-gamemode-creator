@@ -1,0 +1,80 @@
+[
+  {
+    "name": "Zone",
+    "params": ["ax", "ay", "bx", "by"],
+    "description": "Trigger when a player is in the zone from [ax, ay] to [bx, by].",
+    "example_links": []
+  },
+  {
+    "name": "Spawn",
+    "params": [],
+    "description": "Trigger once when player join the server.",
+    "example_links": []
+  },
+  {
+    "name": "HaveItem",
+    "params": ["item", "quantity"],
+    "description": "Trigger when a player has a specific item in inventory.",
+    "example_links": []
+  },
+  {
+    "name": "Kill",
+    "params": ["nb (optional)"],
+    "description": "Trigger when a player gets a kill. If nb is given, trigger only when amount is reached.",
+    "example_links": []
+  },
+  {
+    "name": "Timer",
+    "params": ["time"],
+    "description": "Trigger every 'time' second.",
+    "example_links": []
+  },
+  {
+    "name": "TimerStartIn",
+    "params": ["time"],
+    "description": "Trigger after X seconds. When re-enabled, timer restarts from 0.",
+    "example_links": []
+  },
+  {
+    "name": "HungerGameStop",
+    "params": [],
+    "description": "Trigger when all survivors are dead. Hunger game starts with 'start-hunger-game'.",
+    "example_links": []
+  },
+  {
+    "name": "PlacedBuilding",
+    "params": ["healthMax"],
+    "description": "Trigger when a player places a building with a specific max-life.",
+    "example_links": []
+  },
+  {
+    "name": "DropItem",
+    "params": ["item"],
+    "description": "Trigger when a player drops an item. Also triggers when an item is removed with remove-to. Only one event per second.",
+    "example_links": []
+  },
+  {
+    "name": "Message",
+    "params": ["msg"],
+    "description": "Trigger when a player sends a specific message.",
+    "example_links": []
+  },
+  {
+    "name": "ZoneHaveItem",
+    "params": ["ax", "ay", "bx", "by", "item", "quantity"],
+    "description": "Trigger when a player is inside a zone AND has a specific item.",
+    "example_links": []
+  },
+  {
+    "name": "HasData",
+    "params": ["global", "ids", "exclude"],
+    "description": "Trigger when required data is linked. If 'global' true: triggers from global data list; 'ids' for required ids; 'exclude' for excluded ids.",
+    "example_links": []
+  },
+  {
+    "name": "HasVerified",
+    "params": [],
+    "description": "Trigger once when a player logs in.",
+    "example_links": []
+  }
+]
