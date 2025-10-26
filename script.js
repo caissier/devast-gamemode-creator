@@ -308,7 +308,108 @@ function onCmdTypeSelect() {
         renderCmdList();
     };
     return;
+  }
+  if (sel === 'trade') {
+    fields.innerHTML = `
+        <div>
+        <strong>From Items:</strong>
+        <div id="tradeFromFields"></div>
+        <button type="button" id="addTradeFromBtn" class="trade-subbtn">+ Add From Item</button>
+        </div>
+        <div style="margin-top:13px;">
+        <strong>To Items:</strong>
+        <div id="tradeToFields"></div>
+        <button type="button" id="addTradeToBtn" class="trade-subbtn">+ Add To Item</button>
+        </div>
+        <div class="form-row" style="margin-top:20px;">
+        <label for="tradeSuccess">Success data</label>
+        <input id="tradeSuccess" placeholder="success" />
+        </div>
+        <div class="form-row">
+        <label for="tradeFail">Fail data</label>
+        <input id="tradeFail" placeholder="fail" />
+        </div>
+    `;
+
+    // Start arrays empty
+    let tradeFromArr = [];
+    let tradeToArr = [];
+
+    function renderTradeArr(arr, where, type) {
+        const container = document.getElementById(where);
+        container.innerHTML = arr.map((v, i) => `
+        <div class="form-row" data-index="${i}" style="gap:10px;">
+            <input placeholder="item" value="${v.item || ''}" id="${type}Item${i}" style="max-width:120px;" />
+            <input placeholder="quantity" type="number" min="1" value="${v.quantity || ''}" id="${type}Qt${i}" style="max-width:90px;" />
+            <button type="button" class="trade-subbtn" onclick="(function(btn){
+            let par = btn.parentNode, idx=par.getAttribute('data-index');
+            par.remove();
+            })(this)">Remove</button>
+        </div>
+        `).join('');
     }
+
+    // Initial render
+    renderTradeArr(tradeFromArr, 'tradeFromFields', 'from');
+    renderTradeArr(tradeToArr, 'tradeToFields', 'to');
+
+    document.getElementById('addTradeFromBtn').onclick = () => {
+        // Collect current data
+        tradeFromArr = Array.from(document.querySelectorAll('#tradeFromFields .form-row'))
+        .map((row, i) => ({
+            item: row.querySelector(`#fromItem${i}`)?.value || "",
+            quantity: row.querySelector(`#fromQt${i}`)?.value || ""
+        }))
+        .filter(e => e.item || e.quantity);
+        // Add blank row
+        tradeFromArr.push({});
+        renderTradeArr(tradeFromArr, 'tradeFromFields', 'from');
+    };
+
+    document.getElementById('addTradeToBtn').onclick = () => {
+        tradeToArr = Array.from(document.querySelectorAll('#tradeToFields .form-row'))
+        .map((row, i) => ({
+            item: row.querySelector(`#toItem${i}`)?.value || "",
+            quantity: row.querySelector(`#toQt${i}`)?.value || ""
+        }))
+        .filter(e => e.item || e.quantity);
+        tradeToArr.push({});
+        renderTradeArr(tradeToArr, 'tradeToFields', 'to');
+    };
+
+    // Override Add Command for trade cmd
+    document.getElementById('addCmdBtn').onclick = function() {
+        let fromArr = Array.from(document.querySelectorAll('#tradeFromFields .form-row'))
+        .map((row, i) => ({
+            item: row.querySelector(`#fromItem${i}`)?.value,
+            quantity: Number(row.querySelector(`#fromQt${i}`)?.value)
+        }))
+        .filter(x => x.item);
+
+        let toArr = Array.from(document.querySelectorAll('#tradeToFields .form-row'))
+        .map((row, i) => ({
+            item: row.querySelector(`#toItem${i}`)?.value,
+            quantity: Number(row.querySelector(`#toQt${i}`)?.value)
+        }))
+        .filter(x => x.item);
+
+        const successData = document.getElementById('tradeSuccess').value;
+        const failData = document.getElementById('tradeFail').value;
+
+        tempCmds.push({
+        cmd: 'trade',
+        params: {
+            from: fromArr,
+            to: toArr,
+            ...(successData ? { success: successData } : {}),
+            ...(failData ? { fail: failData } : {})
+        }
+        });
+        renderCmdList();
+    };
+    return;
+  }
+
 
 
   // Existing trade command or others handled here...
