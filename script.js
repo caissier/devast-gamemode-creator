@@ -29,11 +29,11 @@ function switchTab(t) {
   else if (t === 'links') showLinksTab();
 }
 
+// -------- EventType Tools UI ---------
 async function showEventTypeTools() {
   showTabs();
   eventTypes = await fetchData('event_types.json');
   commandTypes = await fetchData('commands.json');
-
   const body = document.getElementById('tabContainer');
   body.innerHTML = `
     <div class="event-form">
@@ -74,7 +74,6 @@ async function showEventTypeTools() {
       <button id="applyJsonBtn" style="display:none;">Apply JSON</button>
     </div>
   `;
-
   populateEventTypeSelector();
   document.getElementById('eventTypeSel').addEventListener('change', onEventTypeSelect);
   document.getElementById('addEventBtn').addEventListener('click', addEvent);
@@ -103,24 +102,26 @@ async function showEventTypeTools() {
     disableBtn.textContent = isDisabledAtStart ? "Disabled at start (active)" : "Disabled at start";
   };
 
-  // Patch for addEvent uses toggle button state
+  // Add Event Handler (includes HasData patch)
   window.addEvent = function() {
     const type = document.getElementById('eventTypeSel').value;
     const curr = eventTypes.find(ev => ev.name === type);
     const params = {};
-
     if (type === "HasData") {
-      // Read arrays of strings for ids and exclude
-      params.ids = readStringListInputs('ids');
-      params.exclude = readStringListInputs('exclude');
+      params.ids = readStringListInputs("ids");
+      params.exclude = readStringListInputs("exclude");
     } else if (curr) {
       curr.params.forEach(p => {
         if (p === 'ids' || p === 'exclude') return; // handled above
-        const val = document.getElementById('param_' + p)?.value;
+        const el = document.getElementById('param_' + p);
+        if (!el) return;
+        let val = el.value;
+        if (el.type === 'number' || (!isNaN(val) && val.trim() !== "")) {
+          val = Number(val);
+        }
         if (val !== "" || p !== "nb") params[p] = val;
       });
     }
-
     const idString = document.getElementById('idString').value;
     const disabled = isDisabledAtStart;
     const cmds = tempCmds.map(c => ({cmd: c.cmd, params: c.params}));
@@ -132,79 +133,159 @@ async function showEventTypeTools() {
     renderCmdList();
     refreshEventList();
   };
+}
 
-  // Read list of strings from a container
-  function readStringListInputs(name) {
-    let res = [];
-    const container = document.getElementById(name + 'ListContainer');
-    if (!container) return res;
-    const inputs = container.querySelectorAll('input.input-string');
-    inputs.forEach(input => {
-      if (input.value.trim()) res.push(input.value.trim());
-    });
-    return res;
-  }
+function readStringListInputs(name) {
+  let res = [];
+  const container = document.getElementById(name + 'ListContainer');
+  if (!container) return res;
+  const inputs = container.querySelectorAll('input.input-string');
+  inputs.forEach(input => {
+    if (input.value.trim()) res.push(input.value.trim());
+  });
+  return res;
+}
 
-  // Edit params panel updates, for HasData and command params
-  function onEventTypeSelect() {
-    const sel = document.getElementById('eventTypeSel').value;
-    const fields = document.getElementById('paramFields');
-    fields.innerHTML = '';
-    const curr = eventTypes.find(ev => ev.name === sel);
-    if (!curr) return;
-
-    // Special case HasData with lists of strings
-    if (sel === 'HasData') {
-      // Create UI for ids & exclude string arrays with add/remove buttons
-      ['ids', 'exclude'].forEach(name => {
-        fields.innerHTML += `
-          <div style="margin-bottom:15px;">
-            <label>${name.charAt(0).toUpperCase() + name.slice(1)} (list of strings):</label>
-            <div id="${name}ListContainer"></div>
-            <button type="button" class="trade-subbtn addStringBtn" data-list-name="${name}">+ Add</button>
-          </div>
-        `;
-      });
-
-      // Add event listeners for add buttons
-      document.querySelectorAll('.addStringBtn').forEach(btn => {
-        btn.onclick = () => {
-          const listName = btn.getAttribute('data-list-name');
-          const container = document.getElementById(listName + 'ListContainer');
-          const div = document.createElement('div');
-          div.className = 'form-row';
-          div.innerHTML = `
-            <input class="input-string" placeholder="Enter ${listName} string" style="flex:1; margin-right:8px;" />
-            <button type="button" class="trade-subbtn removeStringBtn">Remove</button>
-          `;
-          container.appendChild(div);
-          div.querySelector('.removeStringBtn').onclick = () => div.remove();
-        };
-      });
-      return;
-    }
-
-
-    curr.params.forEach(p => {
+// EventType param fields - dynamic HasData UI
+function onEventTypeSelect() {
+  const sel = document.getElementById('eventTypeSel').value;
+  const fields = document.getElementById('paramFields');
+  fields.innerHTML = '';
+  const curr = eventTypes.find(ev => ev.name === sel);
+  if (!curr) return;
+  // Special HasData: render list controls
+  if (sel === 'HasData') {
+    ['ids', 'exclude'].forEach(name => {
       fields.innerHTML += `
-        <div class="form-row">
-          <label for="param_${p}">${p}</label>
-          <input id="param_${p}" placeholder="${p}">
+        <div style="margin-bottom:15px;">
+          <label>${name.charAt(0).toUpperCase() + name.slice(1)} (list of strings):</label>
+          <div id="${name}ListContainer"></div>
+          <button type="button" class="trade-subbtn addStringBtn" data-list-name="${name}">+ Add</button>
         </div>
       `;
     });
+    document.querySelectorAll('.addStringBtn').forEach(btn => {
+      btn.onclick = () => {
+        const listName = btn.getAttribute('data-list-name');
+        const container = document.getElementById(listName + 'ListContainer');
+        const div = document.createElement('div');
+        div.className = 'form-row';
+        div.innerHTML = `
+          <input class="input-string" placeholder="Enter ${listName} string" style="flex:1; margin-right:8px;" />
+          <button type="button" class="trade-subbtn removeStringBtn">Remove</button>
+        `;
+        container.appendChild(div);
+        div.querySelector('.removeStringBtn').onclick = () => div.remove();
+      };
+    });
+    return;
   }
+  curr.params.forEach(p => {
+    fields.innerHTML += `
+      <div class="form-row">
+        <label for="param_${p}">${p}</label>
+        <input id="param_${p}" placeholder="${p}">
+      </div>
+    `;
+  });
+}
 
+// ------- Command UI logic --------
 function onCmdTypeSelect() {
   const sel = document.getElementById('cmdTypeSel').value;
   const fields = document.getElementById('cmdFields');
   fields.innerHTML = '';
-
   const curr = commandTypes.find(c => c.cmd === sel);
   if (!curr) return;
-
+  // Trade Command dynamic arrays UI (add/remove)
+  if (sel === 'trade') {
+    fields.innerHTML = `
+      <div>
+        <strong>From Items:</strong>
+        <div id="tradeFromFields"></div>
+        <button type="button" id="addTradeFromBtn" class="trade-subbtn">+ Add From Item</button>
+      </div>
+      <div style="margin-top:13px;">
+        <strong>To Items:</strong>
+        <div id="tradeToFields"></div>
+        <button type="button" id="addTradeToBtn" class="trade-subbtn">+ Add To Item</button>
+      </div>
+      <div class="form-row" style="margin-top:20px;">
+        <label for="tradeSuccess">Success data</label>
+        <input id="tradeSuccess" placeholder="success" />
+      </div>
+      <div class="form-row">
+        <label for="tradeFail">Fail data</label>
+        <input id="tradeFail" placeholder="fail" />
+      </div>
+    `;
+    let tradeFromArr = [];
+    let tradeToArr = [];
+    function renderTradeArr(arr, where, type) {
+      const container = document.getElementById(where);
+      container.innerHTML = arr.map((v, i) => `
+        <div class="form-row" data-index="${i}" style="gap:10px;">
+          <input placeholder="item" value="${v.item || ''}" id="${type}Item${i}" style="max-width:120px;" />
+          <input placeholder="quantity" type="number" min="1" value="${v.quantity || ''}" id="${type}Qt${i}" style="max-width:90px;" />
+          <button type="button" class="trade-subbtn" onclick="(function(btn){
+            let par = btn.parentNode, idx=par.getAttribute('data-index');
+            par.remove();
+          })(this)">Remove</button>
+        </div>
+      `).join('');
+    }
+    renderTradeArr(tradeFromArr, 'tradeFromFields', 'from');
+    renderTradeArr(tradeToArr, 'tradeToFields', 'to');
+    document.getElementById('addTradeFromBtn').onclick = () => {
+      tradeFromArr = Array.from(document.querySelectorAll('#tradeFromFields .form-row'))
+        .map((row, i) => ({
+          item: row.querySelector(`#fromItem${i}`)?.value || "",
+          quantity: row.querySelector(`#fromQt${i}`)?.value || ""
+        }))
+        .filter(e => e.item || e.quantity);
+      tradeFromArr.push({});
+      renderTradeArr(tradeFromArr, 'tradeFromFields', 'from');
+    };
+    document.getElementById('addTradeToBtn').onclick = () => {
+      tradeToArr = Array.from(document.querySelectorAll('#tradeToFields .form-row'))
+        .map((row, i) => ({
+          item: row.querySelector(`#toItem${i}`)?.value || "",
+          quantity: row.querySelector(`#toQt${i}`)?.value || ""
+        }))
+        .filter(e => e.item || e.quantity);
+      tradeToArr.push({});
+      renderTradeArr(tradeToArr, 'tradeToFields', 'to');
+    };
+    document.getElementById('addCmdBtn').onclick = function() {
+      let fromArr = Array.from(document.querySelectorAll('#tradeFromFields .form-row'))
+        .map((row, i) => ({
+          item: row.querySelector(`#fromItem${i}`)?.value,
+          quantity: Number(row.querySelector(`#fromQt${i}`)?.value)
+        }))
+        .filter(x => x.item);
+      let toArr = Array.from(document.querySelectorAll('#tradeToFields .form-row'))
+        .map((row, i) => ({
+          item: row.querySelector(`#toItem${i}`)?.value,
+          quantity: Number(row.querySelector(`#toQt${i}`)?.value)
+        }))
+        .filter(x => x.item);
+      const successData = document.getElementById('tradeSuccess').value;
+      const failData = document.getElementById('tradeFail').value;
+      tempCmds.push({
+        cmd: 'trade',
+        params: {
+          from: fromArr,
+          to: toArr,
+          ...(successData ? { success: successData } : {}),
+          ...(failData ? { fail: failData } : {})
+        }
+      });
+      renderCmdList();
+    };
+    return;
+  }
+  // Add command logic for others like add-data
   if (sel === 'add-data') {
-    // For add-data show ids as string list editable
     curr.params.forEach(p => {
       if (p === 'ids') {
         fields.innerHTML += `
@@ -233,8 +314,6 @@ function onCmdTypeSelect() {
         `;
       }
     });
-
-    // Setup add id button and handlers
     document.querySelector('.addStringBtn').onclick = () => {
       const container = document.getElementById('addDataIdsContainer');
       const div = document.createElement('div');
@@ -246,8 +325,6 @@ function onCmdTypeSelect() {
       container.appendChild(div);
       div.querySelector('.removeStringBtn').onclick = () => div.remove();
     };
-
-    // Setup toggle buttons for random/global
     ['random','global'].forEach(p => {
       const btn = document.getElementById('btn_' + p);
       const hiddenInput = document.getElementById('input_' + p);
@@ -258,8 +335,6 @@ function onCmdTypeSelect() {
         btn.classList.toggle('active', !current);
       };
     });
-
-    // Override addCmdBtn onclick to get list and toggles
     document.getElementById('addCmdBtn').onclick = () => {
       const ids = [];
       document.querySelectorAll('#addDataIdsContainer input.input-string').forEach(input => {
@@ -269,152 +344,17 @@ function onCmdTypeSelect() {
       params.ids = ids;
       params.random = document.getElementById('input_random').value === 'true';
       params.global = document.getElementById('input_global').value === 'true';
-
       curr.params.forEach(p => {
         if (['ids', 'random', 'global'].includes(p)) return;
         const val = document.getElementById('cmdparam_' + p);
         if (val && val.value) params[p] = val.value;
       });
-
       tempCmds.push({ cmd: sel, params });
       renderCmdList();
     };
     return;
   }
-  if (sel === 'turn-event') {
-    // Render toggle button for mode
-    fields.innerHTML = `
-        <div class="form-row">
-        <label for="btn_mode">mode</label>
-        <button type="button" class="toggle-btn-btn" id="btn_mode">mode: false</button>
-        <input type="hidden" id="input_mode" value="false" />
-        </div>
-    `;
-
-    // Setup toggle button
-    const btn = document.getElementById('btn_mode');
-    const hiddenInput = document.getElementById('input_mode');
-    btn.onclick = () => {
-        const isTrue = hiddenInput.value === 'true';
-        hiddenInput.value = (!isTrue).toString();
-        btn.textContent = `mode: ${!isTrue}`;
-        btn.classList.toggle('active', !isTrue);
-    };
-
-    // Override addCmdBtn to grab the toggle value
-    document.getElementById('addCmdBtn').onclick = () => {
-        const modeVal = document.getElementById('input_mode').value === 'true';
-        tempCmds.push({ cmd: sel, params: { mode: modeVal } });
-        renderCmdList();
-    };
-    return;
-  }
-  if (sel === 'trade') {
-    fields.innerHTML = `
-        <div>
-        <strong>From Items:</strong>
-        <div id="tradeFromFields"></div>
-        <button type="button" id="addTradeFromBtn" class="trade-subbtn">+ Add From Item</button>
-        </div>
-        <div style="margin-top:13px;">
-        <strong>To Items:</strong>
-        <div id="tradeToFields"></div>
-        <button type="button" id="addTradeToBtn" class="trade-subbtn">+ Add To Item</button>
-        </div>
-        <div class="form-row" style="margin-top:20px;">
-        <label for="tradeSuccess">Success data</label>
-        <input id="tradeSuccess" placeholder="success" />
-        </div>
-        <div class="form-row">
-        <label for="tradeFail">Fail data</label>
-        <input id="tradeFail" placeholder="fail" />
-        </div>
-    `;
-
-    // Start arrays empty
-    let tradeFromArr = [];
-    let tradeToArr = [];
-
-    function renderTradeArr(arr, where, type) {
-        const container = document.getElementById(where);
-        container.innerHTML = arr.map((v, i) => `
-        <div class="form-row" data-index="${i}" style="gap:10px;">
-            <input placeholder="item" value="${v.item || ''}" id="${type}Item${i}" style="max-width:120px;" />
-            <input placeholder="quantity" type="number" min="1" value="${v.quantity || ''}" id="${type}Qt${i}" style="max-width:90px;" />
-            <button type="button" class="trade-subbtn" onclick="(function(btn){
-            let par = btn.parentNode, idx=par.getAttribute('data-index');
-            par.remove();
-            })(this)">Remove</button>
-        </div>
-        `).join('');
-    }
-
-    // Initial render
-    renderTradeArr(tradeFromArr, 'tradeFromFields', 'from');
-    renderTradeArr(tradeToArr, 'tradeToFields', 'to');
-
-    document.getElementById('addTradeFromBtn').onclick = () => {
-        // Collect current data
-        tradeFromArr = Array.from(document.querySelectorAll('#tradeFromFields .form-row'))
-        .map((row, i) => ({
-            item: row.querySelector(`#fromItem${i}`)?.value || "",
-            quantity: row.querySelector(`#fromQt${i}`)?.value || ""
-        }))
-        .filter(e => e.item || e.quantity);
-        // Add blank row
-        tradeFromArr.push({});
-        renderTradeArr(tradeFromArr, 'tradeFromFields', 'from');
-    };
-
-    document.getElementById('addTradeToBtn').onclick = () => {
-        tradeToArr = Array.from(document.querySelectorAll('#tradeToFields .form-row'))
-        .map((row, i) => ({
-            item: row.querySelector(`#toItem${i}`)?.value || "",
-            quantity: row.querySelector(`#toQt${i}`)?.value || ""
-        }))
-        .filter(e => e.item || e.quantity);
-        tradeToArr.push({});
-        renderTradeArr(tradeToArr, 'tradeToFields', 'to');
-    };
-
-    // Override Add Command for trade cmd
-    document.getElementById('addCmdBtn').onclick = function() {
-        let fromArr = Array.from(document.querySelectorAll('#tradeFromFields .form-row'))
-        .map((row, i) => ({
-            item: row.querySelector(`#fromItem${i}`)?.value,
-            quantity: Number(row.querySelector(`#fromQt${i}`)?.value)
-        }))
-        .filter(x => x.item);
-
-        let toArr = Array.from(document.querySelectorAll('#tradeToFields .form-row'))
-        .map((row, i) => ({
-            item: row.querySelector(`#toItem${i}`)?.value,
-            quantity: Number(row.querySelector(`#toQt${i}`)?.value)
-        }))
-        .filter(x => x.item);
-
-        const successData = document.getElementById('tradeSuccess').value;
-        const failData = document.getElementById('tradeFail').value;
-
-        tempCmds.push({
-        cmd: 'trade',
-        params: {
-            from: fromArr,
-            to: toArr,
-            ...(successData ? { success: successData } : {}),
-            ...(failData ? { fail: failData } : {})
-        }
-        });
-        renderCmdList();
-    };
-    return;
-  }
-
-
-
-  // Existing trade command or others handled here...
-
-  // Normal param inputs for other commands
+  // Other inputs (default)
   if (curr.params) {
     curr.params.forEach(p => {
       fields.innerHTML += `
@@ -430,16 +370,11 @@ function onCmdTypeSelect() {
   btn.addEventListener('click', addCmd);
 }
 
-}
-
-
-
 function populateEventTypeSelector() {
   const sel = document.getElementById('eventTypeSel');
   sel.innerHTML = '';
-  // Sort alphabetically by .name, case-insensitive
   eventTypes
-    .slice() // copy array so original remains in data order
+    .slice()
     .sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }))
     .forEach(ev => {
       const opt = document.createElement('option');
@@ -449,30 +384,11 @@ function populateEventTypeSelector() {
     });
 }
 
-function onEventTypeSelect() {
-  const sel = document.getElementById('eventTypeSel').value;
-  const fields = document.getElementById('paramFields');
-  fields.innerHTML = '';
-  const curr = eventTypes.find(ev => ev.name === sel);
-  if (!curr) return;
-  if (curr.params) {
-    curr.params.forEach(p => {
-      fields.innerHTML += `
-        <div class="form-row">
-          <label for="param_${p}">${p}</label>
-          <input id="param_${p}" placeholder="${p}">
-        </div>
-      `;
-    });
-  }
-}
-
 function populateCmdTypeSelector() {
   const sel = document.getElementById('cmdTypeSel');
   sel.innerHTML = '';
-  // Sort alphabetically by .cmd, case-insensitive
   commandTypes
-    .slice() // copy array so original remains in data order
+    .slice()
     .sort((a, b) => a.cmd.localeCompare(b.cmd, undefined, { sensitivity: 'base' }))
     .forEach(c => {
       const emojiStr = c.emoji ? ` ${c.emoji}` : '';
@@ -483,110 +399,17 @@ function populateCmdTypeSelector() {
     });
 }
 
-function onCmdTypeSelect() {
-  const sel = document.getElementById('cmdTypeSel').value;
-  const fields = document.getElementById('cmdFields');
-  fields.innerHTML = '';
-  const curr = commandTypes.find(c => c.cmd === sel);
-
-  // Handle 'trade' with dynamic arrays
-  if (sel === 'trade') {
-    fields.innerHTML = `
-      <div>
-        <strong>From Items:</strong>
-        <div id="tradeFromFields"></div>
-        <button type="button" id="addTradeFromBtn" class="trade-subbtn">+ Add From Item</button>
-      </div>
-      <div style="margin-top:13px;">
-        <strong>To Items:</strong>
-        <div id="tradeToFields"></div>
-        <button type="button" id="addTradeToBtn" class="trade-subbtn">+ Add To Item</button>
-      </div>
-    `;
-
-    // internal arrays for values
-    let tradeFromArr = [{}];
-    let tradeToArr = [{}];
-
-    function readTradeArr(where, type) {
-      let arr = [];
-      let idx = 0, itemEl, qtEl;
-      while ((itemEl = document.getElementById(type + "Item" + idx))) {
-        let item = itemEl.value;
-        qtEl = document.getElementById(type + "Qt" + idx);
-        let quantity = qtEl ? qtEl.value : "";
-        if (item || quantity) arr.push({ item, quantity });
-        idx++;
-      }
-      return arr;
-    }
-
-    function renderTradeArr(arr, where, type) {
-      const container = document.getElementById(where);
-      container.innerHTML = arr
-        .map((v, i) => `
-          <div class="form-row" data-index="${i}">
-            <input placeholder="item" value="${v.item || ''}" id="${type}Item${i}" style="max-width:120px;" />
-            <input placeholder="quantity" type="number" min="0" value="${v.quantity || ''}" id="${type}Qt${i}" style="max-width:90px;margin-left:7px;" />
-            <button type="button" class="trade-subbtn" style="margin-left:10px;" onclick="(function(btn){
-              let par = btn.parentNode, idx=par.getAttribute('data-index');
-              par.remove();
-              // Update array will occur on next add or submit
-            })(this)">Remove</button>
-          </div>
-        `)
-        .join('');
-    }
-
-    // Initial render
-    renderTradeArr(tradeFromArr, 'tradeFromFields', 'from');
-    renderTradeArr(tradeToArr, 'tradeToFields', 'to');
-
-    document.getElementById('addTradeFromBtn').onclick = () => {
-      tradeFromArr = readTradeArr('tradeFromFields', 'from');
-      tradeFromArr.push({});
-      renderTradeArr(tradeFromArr, 'tradeFromFields', 'from');
-    };
-    document.getElementById('addTradeToBtn').onclick = () => {
-      tradeToArr = readTradeArr('tradeToFields', 'to');
-      tradeToArr.push({});
-      renderTradeArr(tradeToArr, 'tradeToFields', 'to');
-    };
-
-    document.getElementById('addCmdBtn').onclick = function () {
-      let fromArr = readTradeArr('tradeFromFields', 'from').filter(x => x.item);
-      let toArr = readTradeArr('tradeToFields', 'to').filter(x => x.item);
-      tempCmds.push({ cmd: 'trade', params: { from: fromArr, to: toArr } });
-      renderCmdList();
-    };
-    return; // Do not fall-through to default param logic
-  }
-
-  // Default param logic for all other commands
-  if (!curr) return;
-  if (curr.params) {
-    curr.params.forEach(p => {
-      fields.innerHTML += `
-        <div class="form-row">
-          <label for="cmdparam_${p}">${p}</label>
-          <input id="cmdparam_${p}" placeholder="${p}">
-        </div>
-      `;
-    });
-  }
-  const btn = document.getElementById('addCmdBtn');
-    btn.removeEventListener('click', addCmd); // Remove any prior
-    btn.addEventListener('click', addCmd);
-}
-
-
-
 function addCmd() {
   const cmdName = document.getElementById('cmdTypeSel').value;
   const curr = commandTypes.find(c => c.cmd === cmdName);
   const params = {};
   curr && curr.params.forEach(p => {
-    const val = document.getElementById('cmdparam_' + p).value;
+    const el = document.getElementById('cmdparam_' + p);
+    if (!el) return;
+    let val = el.value;
+    if (el.type === 'number' || (!isNaN(val) && val.trim() !== "")) {
+      val = Number(val);
+    }
     if (val !== '') params[p] = val;
   });
   tempCmds.push({cmd: cmdName, params});
@@ -619,11 +442,21 @@ function addEvent() {
   const type = document.getElementById('eventTypeSel').value;
   const curr = eventTypes.find(ev => ev.name === type);
   const params = {};
-  curr && curr.params.forEach(p => {
-    const el = document.getElementById('param_' + p);
-    const val = el ? el.value : '';
-    if (val !== "" || p !== "nb") params[p] = val;
-  });
+  if (type === "HasData") {
+    params.ids = readStringListInputs("ids");
+    params.exclude = readStringListInputs("exclude");
+  } else if (curr) {
+    curr.params.forEach(p => {
+      if (p === 'ids' || p === 'exclude') return; // handled above
+      const el = document.getElementById('param_' + p);
+      if (!el) return;
+      let val = el.value;
+      if (el.type === 'number' || (!isNaN(val) && val.trim() !== "")) {
+        val = Number(val);
+      }
+      if (val !== "" || p !== "nb") params[p] = val;
+    });
+  }
   const idString = document.getElementById('idString').value;
   const disabled = isDisabledAtStart;
   const cmds = tempCmds.map(c => ({cmd: c.cmd, params: c.params}));
@@ -704,108 +537,6 @@ function fileImportJSON(e) {
     document.getElementById('jsonArea').value = ev.target.result;
   };
   reader.readAsText(file);
-}
-
-// Documentation & Links tabs unchanged, except they support emoji and new color
-async function showDocumentationTab() {
-  showTabs();
-  const body = document.getElementById('tabContainer');
-  body.innerHTML = `
-    <div class="documentation-content">
-      <h2 class="doc-title">Documentation</h2>
-      <div class="docu-nav">
-        <button onclick="scrollDocSection('eventtypes')">Event Types</button>
-        <button onclick="scrollDocSection('commands')">Commands</button>
-        <button onclick="scrollDocSection('discordcmds')">Discord Cmds</button>
-      </div>
-      <div id="documentationSections"></div>
-    </div>
-  `;
-  const [events, commands, discordCmds] = await Promise.all([
-    fetchData('event_types.json'),
-    fetchData('commands.json'),
-    fetchData('discord_cmds.json')
-  ]);
-  let sectionHTML = `
-    <h3 class="doc-section-title" id="docu-eventtypes">Event Type List</h3>
-    <ul>
-      ${events.map(ev=>`
-        <li>
-          <strong>${ev.name}</strong>
-          ${ev.params && ev.params.length ? `<br>Params: <code>${ev.params.join(', ')}</code>` : ""}
-          ${ev.description ? `<br>${ev.description}` : ""}
-          ${ev.example_links && ev.example_links.length ?
-            `<br>Example: ${ev.example_links.map(l=>`<a href="${l}" target="_blank">${l}</a>`).join(", ")}`
-            : ""}
-        </li>
-      `).join('')}
-    </ul>
-    <hr>
-    <h3 class="doc-section-title" id="docu-commands">Event Commands List</h3>
-    <ul>
-      ${commands.map(cmd=>`
-        <li>
-          <strong>${cmd.cmd}${(cmd.emoji) ? " " + cmd.emoji : ""}</strong>
-          ${cmd.params && cmd.params.length ? `<br>Params: <code>${cmd.params.join(', ')}</code>` : ""}
-          ${cmd.description ? `<br>${cmd.description}` : ""}
-          ${cmd.example_links && cmd.example_links.length ?
-            `<br>Example: ${cmd.example_links.map(l=>`<a href="${l}" target="_blank">${l}</a>`).join(", ")}`
-            : ""}
-        </li>
-      `).join('')}
-    </ul>
-    <div style="color:#91e3ff;font-size:1em;margin:12px 0 12px 0;">
-      <span>📚 For item list and building life see <a href="https://devast.io/commands/#item" target="_blank">devast.io/commands/#item</a></span>
-    </div>
-    <hr>
-    <h3 class="doc-section-title" id="docu-discordcmds">Discord Commands List</h3>
-    <div id="discordCmdsContainer"></div>   
-  `;
-  document.getElementById('documentationSections').innerHTML = sectionHTML;
-  document.getElementById('discordCmdsContainer').innerHTML = `
-  <ul>
-    ${discordCmds.map(d => `
-      <li>
-        <code>${d.cmd}</code>
-        ${d.description ? `<br><small>Description: ${d.description}</small>` : ''}
-        ${d.example_links && d.example_links.length ? `
-        <br><small>Examples: ${
-            d.example_links
-            .map(link =>
-                link.startsWith('https')
-                ? `<a href="${link}" target="_blank">${link}</a>`
-                : `<span class="not-a-link">${link}</span>`
-            )
-            .join('<br>')
-        }</small>
-        ` : ''}
-
-
-
-      </li>
-    `).join('')}
-  </ul>
-`;
-}
-window.scrollDocSection = function(target) {
-  const el = document.getElementById('docu-' + target);
-  if (el) el.scrollIntoView({behavior:"smooth", block:"center"});
-};
-
-function showLinksTab() {
-  showTabs();
-  const body = document.getElementById('tabContainer');
-  body.innerHTML = `
-    <div class="links-content">
-      <h2>Links</h2>
-      <ul>
-        <li><a href="https://devast.io/?name=private2" target="_blank">The Devast.io server (#2)</a></li>
-        <li><a href="https://discord.gg/nMjJthgJTa" target="_blank">Caissier Discord, where you can enter in-game commands</a></li>
-        <li><a href="https://discord.com/invite/njg9j9sYBC" target="_blank">Official Devast.io Discord</a></li>
-        <li><a href="https://caissier.github.io/devastMapEditorPlusPlus/" target="_blank">An unofficial Map Editor for devast</a></li>
-      </ul>
-    </div>
-  `;
 }
 
 // Start app
