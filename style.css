@@ -278,3 +278,39 @@ nav .tab.active {
   background: #ed6060;
   color: #fff;
 }
+#addCmdBtn {
+  font-size: 1.3em;
+  font-weight: 700;
+  padding: 12px 30px;
+  background-color: #3399ff;
+  color: white;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  margin-top: 20px;
+}
+
+#addCmdBtn:hover {
+  background-color: #1478d7;
+}
+
+#addEventBtn {
+  font-size: 1.4em;
+  font-weight: 800;
+  padding: 14px 35px;
+  background-color: #f56151;
+  color: white;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  margin-top: 30px;
+  display: block;
+  width: 100%;
+  max-width: 480px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+#addEventBtn:hover {
+  background-color: #da3535;
+}

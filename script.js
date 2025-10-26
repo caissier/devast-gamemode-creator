@@ -3,6 +3,7 @@ let commandTypes = [];
 let events = [];
 let tempCmds = [];
 let tab = "eventType"; // default tab
+let isDisabledAtStart = false;
 
 function fetchData(file) {
   return fetch(file).then(r => r.json());
@@ -28,7 +29,6 @@ function switchTab(t) {
   else if (t === 'links') showLinksTab();
 }
 
-// EventType Tools: dynamically populate from JSON files
 async function showEventTypeTools() {
   showTabs();
   eventTypes = await fetchData('event_types.json');
@@ -95,25 +95,32 @@ async function showEventTypeTools() {
   onEventTypeSelect();
   onCmdTypeSelect();
 
-  // Toggle button logic for "disabled at start"
+  // Disabled at start toggle button
   const disableBtn = document.getElementById('disabledBtn');
-  let isDisabledAtStart = false;
   disableBtn.onclick = function() {
     isDisabledAtStart = !isDisabledAtStart;
     disableBtn.classList.toggle('active', isDisabledAtStart);
     disableBtn.textContent = isDisabledAtStart ? "Disabled at start (active)" : "Disabled at start";
   };
 
-  // Patch: update addEvent function to use isDisabledAtStart
-  // Overwrite addEvent so it has access to isDisabledAtStart:
+  // Patch for addEvent uses toggle button state
   window.addEvent = function() {
     const type = document.getElementById('eventTypeSel').value;
     const curr = eventTypes.find(ev => ev.name === type);
     const params = {};
-    curr && curr.params.forEach(p => {
-      const val = document.getElementById('param_' + p).value;
-      if (val !== "" || p !== "nb") params[p] = val;
-    });
+
+    if (type === "HasData") {
+      // Read arrays of strings for ids and exclude
+      params.ids = readStringListInputs('ids');
+      params.exclude = readStringListInputs('exclude');
+    } else if (curr) {
+      curr.params.forEach(p => {
+        if (p === 'ids' || p === 'exclude') return; // handled above
+        const val = document.getElementById('param_' + p)?.value;
+        if (val !== "" || p !== "nb") params[p] = val;
+      });
+    }
+
     const idString = document.getElementById('idString').value;
     const disabled = isDisabledAtStart;
     const cmds = tempCmds.map(c => ({cmd: c.cmd, params: c.params}));
@@ -125,7 +132,175 @@ async function showEventTypeTools() {
     renderCmdList();
     refreshEventList();
   };
+
+  // Read list of strings from a container
+  function readStringListInputs(name) {
+    let res = [];
+    const container = document.getElementById(name + 'ListContainer');
+    if (!container) return res;
+    const inputs = container.querySelectorAll('input.input-string');
+    inputs.forEach(input => {
+      if (input.value.trim()) res.push(input.value.trim());
+    });
+    return res;
+  }
+
+  // Edit params panel updates, for HasData and command params
+  function onEventTypeSelect() {
+    const sel = document.getElementById('eventTypeSel').value;
+    const fields = document.getElementById('paramFields');
+    fields.innerHTML = '';
+    const curr = eventTypes.find(ev => ev.name === sel);
+    if (!curr) return;
+
+    // Special case HasData with lists of strings
+    if (sel === 'HasData') {
+      // Create UI for ids & exclude string arrays with add/remove buttons
+      ['ids', 'exclude'].forEach(name => {
+        fields.innerHTML += `
+          <div style="margin-bottom:15px;">
+            <label>${name.charAt(0).toUpperCase() + name.slice(1)} (list of strings):</label>
+            <div id="${name}ListContainer"></div>
+            <button type="button" class="trade-subbtn addStringBtn" data-list-name="${name}">+ Add</button>
+          </div>
+        `;
+      });
+
+      // Add event listeners for add buttons
+      document.querySelectorAll('.addStringBtn').forEach(btn => {
+        btn.onclick = () => {
+          const listName = btn.getAttribute('data-list-name');
+          const container = document.getElementById(listName + 'ListContainer');
+          const div = document.createElement('div');
+          div.className = 'form-row';
+          div.innerHTML = `
+            <input class="input-string" placeholder="Enter ${listName} string" style="flex:1; margin-right:8px;" />
+            <button type="button" class="trade-subbtn removeStringBtn">Remove</button>
+          `;
+          container.appendChild(div);
+          div.querySelector('.removeStringBtn').onclick = () => div.remove();
+        };
+      });
+      return;
+    }
+
+    curr.params.forEach(p => {
+      fields.innerHTML += `
+        <div class="form-row">
+          <label for="param_${p}">${p}</label>
+          <input id="param_${p}" placeholder="${p}">
+        </div>
+      `;
+    });
+  }
+
+function onCmdTypeSelect() {
+  const sel = document.getElementById('cmdTypeSel').value;
+  const fields = document.getElementById('cmdFields');
+  fields.innerHTML = '';
+
+  const curr = commandTypes.find(c => c.cmd === sel);
+  if (!curr) return;
+
+  if (sel === 'add-data') {
+    // For add-data show ids as string list editable
+    curr.params.forEach(p => {
+      if (p === 'ids') {
+        fields.innerHTML += `
+          <div style="margin-bottom:15px;">
+            <label>Ids (list of strings):</label>
+            <div id="addDataIdsContainer"></div>
+            <button type="button" class="trade-subbtn addStringBtn" data-list-name="addDataIds">+ Add Id</button>
+          </div>
+          <div class="form-row">
+            <label for="cmdparam_random">random</label>
+            <button type="button" class="toggle-btn-btn" id="btn_random">random: false</button>
+            <input type="hidden" id="input_random" value="false" />
+          </div>
+          <div class="form-row">
+            <label for="cmdparam_global">global</label>
+            <button type="button" class="toggle-btn-btn" id="btn_global">global: false</button>
+            <input type="hidden" id="input_global" value="false" />
+          </div>
+        `;
+      } else if (p !== 'random' && p !== 'global') {
+        fields.innerHTML += `
+          <div class="form-row">
+            <label for="cmdparam_${p}">${p}</label>
+            <input id="cmdparam_${p}" placeholder="${p}">
+          </div>
+        `;
+      }
+    });
+
+    // Setup add id button and handlers
+    document.querySelector('.addStringBtn').onclick = () => {
+      const container = document.getElementById('addDataIdsContainer');
+      const div = document.createElement('div');
+      div.className = 'form-row';
+      div.innerHTML = `
+        <input class="input-string" placeholder="Enter Id" style="flex:1; margin-right:8px;" />
+        <button type="button" class="trade-subbtn removeStringBtn">Remove</button>
+      `;
+      container.appendChild(div);
+      div.querySelector('.removeStringBtn').onclick = () => div.remove();
+    };
+
+    // Setup toggle buttons for random/global
+    ['random','global'].forEach(p => {
+      const btn = document.getElementById('btn_' + p);
+      const hiddenInput = document.getElementById('input_' + p);
+      btn.onclick = () => {
+        const current = hiddenInput.value === 'true';
+        hiddenInput.value = (!current).toString();
+        btn.textContent = `${p}: ${!current}`;
+        btn.classList.toggle('active', !current);
+      };
+    });
+
+    // Override addCmdBtn onclick to get list and toggles
+    document.getElementById('addCmdBtn').onclick = () => {
+      const ids = [];
+      document.querySelectorAll('#addDataIdsContainer input.input-string').forEach(input => {
+        if (input.value.trim()) ids.push(input.value.trim());
+      });
+      const params = {};
+      params.ids = ids;
+      params.random = document.getElementById('input_random').value === 'true';
+      params.global = document.getElementById('input_global').value === 'true';
+
+      curr.params.forEach(p => {
+        if (['ids', 'random', 'global'].includes(p)) return;
+        const val = document.getElementById('cmdparam_' + p);
+        if (val && val.value) params[p] = val.value;
+      });
+
+      tempCmds.push({ cmd: sel, params });
+      renderCmdList();
+    };
+    return;
+  }
+
+  // Existing trade command or others handled here...
+
+  // Normal param inputs for other commands
+  if (curr.params) {
+    curr.params.forEach(p => {
+      fields.innerHTML += `
+        <div class="form-row">
+          <label for="cmdparam_${p}">${p}</label>
+          <input id="cmdparam_${p}" placeholder="${p}">
+        </div>
+      `;
+    });
+  }
+  const btn = document.getElementById('addCmdBtn');
+  btn.removeEventListener('click', addCmd); // Remove any prior
+  btn.addEventListener('click', addCmd);
 }
+
+}
+
 
 
 function populateEventTypeSelector() {
@@ -260,7 +435,9 @@ function onCmdTypeSelect() {
       `;
     });
   }
-  document.getElementById('addCmdBtn').onclick = addCmd;
+  const btn = document.getElementById('addCmdBtn');
+    btn.removeEventListener('click', addCmd); // Remove any prior
+    btn.addEventListener('click', addCmd);
 }
 
 
@@ -304,7 +481,8 @@ function addEvent() {
   const curr = eventTypes.find(ev => ev.name === type);
   const params = {};
   curr && curr.params.forEach(p => {
-    const val = document.getElementById('param_' + p).value;
+    const el = document.getElementById('param_' + p);
+    const val = el ? el.value : '';
     if (val !== "" || p !== "nb") params[p] = val;
   });
   const idString = document.getElementById('idString').value;
@@ -442,11 +620,22 @@ async function showDocumentationTab() {
     </div>
     <hr>
     <h3 class="doc-section-title" id="docu-discordcmds">Discord Commands List</h3>
-    <ul>
-      ${discordCmds.map(d=>`<li><code>${d.cmd}</code></li>`).join('')}
-    </ul>
+    <div id="discordCmdsContainer"></div>   
   `;
   document.getElementById('documentationSections').innerHTML = sectionHTML;
+  document.getElementById('discordCmdsContainer').innerHTML = `
+  <ul>
+    ${discordCmds.map(d => `
+      <li>
+        <code>${d.cmd}</code>
+        ${d.description ? `<br><small>Description: ${d.description}</small>` : ''}
+        ${d.example_links && d.example_links.length ? `
+          <br><small>Examples: ${d.example_links.map(link => `<a href="${link}" target="_blank">${link}</a>`).join(', ')}</small>
+        ` : ''}
+      </li>
+    `).join('')}
+  </ul>
+`;
 }
 window.scrollDocSection = function(target) {
   const el = document.getElementById('docu-' + target);

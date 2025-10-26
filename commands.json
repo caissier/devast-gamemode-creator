@@ -156,18 +156,6 @@
     "example_links": []
   },
   {
-    "cmd": "item-list=",
-    "params": ["id", "items"],
-    "description": "Add multiple lists of item. 'id': list name, 'items': array.",
-    "example_links": []
-  },
-  {
-    "cmd": "clean-item-list",
-    "params": [],
-    "description": "Delete all item-lists.",
-    "example_links": []
-  },
-  {
     "cmd": "must-have-item-list",
     "params": ["id"],
     "description": "Auto-refill inventory from a list ('id'). Not permanent: must use every tick.",

@@ -18,5 +18,16 @@
   { "cmd": "AI-" },
   { "cmd": "gauge-" },
   { "cmd": "tp-admin=X:Y" },
-  { "cmd": "!public=" }
+  { "cmd": "!public=" },
+  {
+    "cmd": "item-list=",
+    "description": "Add multiple lists of item. 'id': list name, 'items': array.",
+    "example_links": []
+  },
+  {
+    "cmd": "clean-item-list",
+    "description": "Delete all item-lists.",
+    "example_links": []
+  },
+  { "cmd": "!item-to=" }
 ]
