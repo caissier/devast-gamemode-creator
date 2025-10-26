@@ -6,28 +6,51 @@
   { "cmd": "xp=" },
   { "cmd": "teleport-all=" },
   { "cmd": "building-life=" },
-  { "cmd": "spawn-loot" },
-  { "cmd": "loot-" },
+  { "cmd": "spawn-loot",
+    "example_links": [
+        "!spawn-loot=NUMBER_BETWEEN_1_AND_59",
+        "!spawn-loot-on/!spawn-loot-off",
+        "!spawn-loot-timer=NUMBER_BETWEEN_5_AND_60",
+        "!spawn-loot-factor=NUMBER_BETWEEN_1_AND_59"
+    ]},
+  { "cmd": "loot-" ,
+    "example_links": [
+        "!loot-on/!loot-off"
+    ]},
   { "cmd": "vegetation-regeneration" },
   { "cmd": "house-regeneration-" },
   { "cmd": "add-starter-kit=" },
   { "cmd": "item-all=" },
-  { "cmd": "player-list" },
+  { "cmd": "player-list",
+    "description": "display the current list of player in the chat (execpt admins" },
   { "cmd": "ghoul-regeneration-" },
   { "cmd": "light-damage=" },
   { "cmd": "AI-" },
-  { "cmd": "gauge-" },
-  { "cmd": "tp-admin=X:Y" },
+  { "cmd": "gauge-" ,
+    "example_links": [
+        "!gauge-food-decrease=NUMBER_BETWEEN_0_AND_10000",
+        "!gauge-cold-increase=NUMBER_BETWEEN_0_AND_10000",
+        "!gauge-life-size=5"
+    ]},
+  { "cmd": "tp-admin=X:Y",
+    "description": "teleport admins (Caissier AFK player) to a specific position" },
   { "cmd": "!public=" },
   {
     "cmd": "item-list=",
-    "description": "Add multiple lists of item. 'id': list name, 'items': array.",
-    "example_links": []
+    "description": "Add multiple lists of item. 'id': list name, 'items': array of strings. Is used with 'must-have-item-list/forbiden-item-list'",
+    "example_links": [
+        "{\"id\":\"myList\",\"items\":[\"orange\",\"tomato\"]}",
+        "https://discord.com/channels/1398287667916963870/1411777632890126357/1424413457800892437"
+    ]
   },
   {
     "cmd": "clean-item-list",
     "description": "Delete all item-lists.",
     "example_links": []
   },
-  { "cmd": "!item-to=" }
+  { "cmd": "!item-to=",
+    "description": "⚠️ it's the same than on devast cmd, you must use x2 :(for the login that we never use) ",
+    "example_links": ["https://discord.com/channels/1398287667916963870/1411777632890126357/1430211463032606781",
+                      "!item-to=2::ak47"]
+    }
 ]

@@ -630,8 +630,19 @@ async function showDocumentationTab() {
         <code>${d.cmd}</code>
         ${d.description ? `<br><small>Description: ${d.description}</small>` : ''}
         ${d.example_links && d.example_links.length ? `
-          <br><small>Examples: ${d.example_links.map(link => `<a href="${link}" target="_blank">${link}</a>`).join(', ')}</small>
+        <br><small>Examples: ${
+            d.example_links
+            .map(link =>
+                link.startsWith('https')
+                ? `<a href="${link}" target="_blank">${link}</a>`
+                : `<span class="not-a-link">${link}</span>`
+            )
+            .join('<br>')
+        }</small>
         ` : ''}
+
+
+
       </li>
     `).join('')}
   </ul>
@@ -649,9 +660,10 @@ function showLinksTab() {
     <div class="links-content">
       <h2>Links</h2>
       <ul>
-        <li><a href="https://devast.io/?name=private2" target="_blank">Devast server (private2)</a></li>
-        <li><a href="https://discord.gg/nMjJthgJTa" target="_blank">This Discord</a></li>
-        <li><a href="https://discord.com/invite/njg9j9sYBC" target="_blank">Official Discord</a></li>
+        <li><a href="https://devast.io/?name=private2" target="_blank">The Devast.io server (#2)</a></li>
+        <li><a href="https://discord.gg/nMjJthgJTa" target="_blank">Caissier Discord, where you can enter in-game commands</a></li>
+        <li><a href="https://discord.com/invite/njg9j9sYBC" target="_blank">Official Devast.io Discord</a></li>
+        <li><a href="https://caissier.github.io/devastMapEditorPlusPlus/" target="_blank">An unofficial Map Editor for devast</a></li>
       </ul>
     </div>
   `;

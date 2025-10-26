@@ -110,7 +110,7 @@
   {
     "cmd": "trade",
     "params": ["from", "to"],
-    "description": "Requires arrays of {item, quantity}. Checks if the player has all 'from' requirements, then exchanges for 'to'. Adds success/fail data to player.",
+    "description": "Requires arrays of {item, quantity}. Checks if the player has all 'from' requirements, then exchanges for 'to'. Adds success/fail data to player. 📚",
     "example_links": []
   },
   {
@@ -158,13 +158,15 @@
   {
     "cmd": "must-have-item-list",
     "params": ["id"],
-    "description": "Auto-refill inventory from a list ('id'). Not permanent: must use every tick.",
+    "description": "Auto-refill inventory from a list ('id'). Not permanent: must use every tick. see 'item-list=' discord cmds",
     "example_links": []
   },
   {
     "cmd": "forbiden-item-list",
     "params": ["id"],
-    "description": "Forbid items in inventory from a list ('id'). Not permanent: must use every tick.",
-    "example_links": []
+    "description": "Forbid items in inventory from a list ('id'). Not permanent: must use every tick. see 'item-list=' discord cmds",
+    "example_links": ["https://discord.com/channels/1398287667916963870/1409896606366568518/1424413593289359370",
+                        "https://discord.com/channels/1398287667916963870/1409896606366568518/1424414420649513151"
+    ]
   }
 ]
