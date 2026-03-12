@@ -19,7 +19,7 @@
   },
   {
     "name": "Kill",
-    "params": ["nb (optional)"],
+    "params": ["nb"],
     "description": "Trigger when a player gets a kill. If nb is given, trigger only when amount is reached.",
     "example_links": []
   },
