@@ -13,19 +13,19 @@
   },
   {
     "cmd": "item-to",
-    "params": ["item", "qt"],
+    "params": ["item", "quantity"],
     "description": "Give item to player. qt (quantity) is optional (1–255). 📚",
     "example_links": []
   },
   {
     "cmd": "item-all",
-    "params": ["item", "qt"],
+    "params": ["item", "quantity"],
     "description": "Give item to ALL players. qt (quantity) is optional (1–255). 📚",
     "example_links": []
   },
   {
     "cmd": "remove-to",
-    "params": ["item", "qt"],
+    "params": ["item", "quantity"],
     "description": "Remove item from player inventory. Quantity is optional (0–5000); removes all if not set. 📚",
     "example_links": []
   },
@@ -60,8 +60,14 @@
     "example_links": []
   },
   {
+    "cmd": "remove-all-item-to",
+    "params": ["item", "quantity"],
+    "description": "Remove ALL items from a player's inventory.",
+    "example_links": []
+  },
+  {
     "cmd": "remove-all",
-    "params": [],
+    "params": ["item"],
     "description": "Remove ALL items from a player's inventory.",
     "example_links": []
   },
