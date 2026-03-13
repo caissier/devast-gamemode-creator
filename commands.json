@@ -60,7 +60,7 @@
     "example_links": []
   },
   {
-    "cmd": "remove-all-item-to",
+    "cmd": "remove-all",
     "params": [],
     "description": "Remove ALL items from a player's inventory.",
     "example_links": []
