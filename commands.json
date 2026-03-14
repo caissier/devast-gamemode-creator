@@ -62,13 +62,13 @@
   {
     "cmd": "remove-all-item-to",
     "params": [],
-    "description": "Remove ALL items from a player's inventory.",
+    "description": "Remove ALL items from a specific player's inventory.",
     "example_links": []
   },
   {
     "cmd": "remove-all",
     "params": ["item", "quantity"],
-    "description": "Remove ALL items from a player's inventory.",
+    "description": "Remove a specific items from ALL player's inventory.",
     "example_links": []
   },
   {
